@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include "OLED_Driver.h"
 #include "OLED_GFX.h"
 #include <SPI.h>
@@ -5,19 +6,22 @@
 #define button 3
 OLED_GFX oled = OLED_GFX();
 
+enum addrs{MANUAL_ADDR = 100, VOICE_ADDR, BRAIN_ADDR};
+
 uint8_t* sp_1;
 uint8_t* sp_2;
 
 int dis = 0;
+int manual=0;
+int voice=0;
+int brain=0;
 int i=0;
 
 void show_stats();
 void Lock();
 void show_menu(int, int);
 void modes(int);
-void manual_control();
-void voice_control();
-void brainwave_control();
+void save_routes();
 
 void draw_line(int start_x, int start_y, int dir)
 {
@@ -46,7 +50,10 @@ void setup() {
   SPI.setClockDivider(SPI_CLOCK_DIV2);
   SPI.begin();
   Serial.begin(9600);
-
+  manual = EEPROM.read(MANUAL_ADDR);
+  voice = EEPROM.read(VOICE_ADDR);
+  brain = EEPROM.read(BRAIN_ADDR);
+  
   oled.Device_Init();
   oled.Clear_Screen();
   oled.Set_Color(RED);
@@ -59,7 +66,7 @@ void setup() {
 
 void loop() 
 {
-  Serial.print(dis);
+  
   switch(dis)
   {
     case 0:
@@ -100,6 +107,11 @@ void loop()
           dis = 3;
           break;
         }
+        else if(i==2 && digitalRead(button)==LOW)
+        {
+          dis = 4;
+          break;
+        }
       }
       break;
     }
@@ -112,7 +124,6 @@ void loop()
     case 2:
     {
       i=0;
-      int control=0;
       oled.Clear_Screen();
       while(i<4)
       {
@@ -133,53 +144,50 @@ void loop()
             }
           }
         }
-        if(i==0 && digitalRead(button)==LOW)
+        if(i==0 &&digitalRead(button)==LOW)
         {
-          control = 1;
-          break;
+          if(manual==1)
+          {
+            manual=0;
+            EEPROM.write(MANUAL_ADDR, manual);
+          }
+          else
+          {
+            manual=1;
+            EEPROM.write(MANUAL_ADDR, manual);
+          }
         }
         if(i==1 && digitalRead(button)==LOW)
         {
-          control = 2;
-          break;
+          if(voice==1)
+          {
+            voice=0;
+            EEPROM.write(VOICE_ADDR, voice);
+          }
+          else
+          {
+            voice=1;
+            EEPROM.write(VOICE_ADDR, voice);
+          }
         }
         if(i==2 && digitalRead(button)==LOW)
         {
-          control = 3;
-          break;
+          if(brain==1)
+          {
+            brain=0;
+            EEPROM.write(BRAIN_ADDR, brain);
+          }
+          else
+          {
+            brain=1;
+            EEPROM.write(BRAIN_ADDR, brain);
+          }
         }
         if(i==3 && digitalRead(button)==LOW)
         {
           dis=0;
           break;
         }
-      }
-      switch(control)
-      {
-        case 1:
-          oled.Clear_Screen();
-          while(digitalRead(button)!=LOW)
-          {
-            manual_control();
-          }
-          dis=2;
-          break;
-        case 2:
-          oled.Clear_Screen();
-          while(digitalRead(button)!=LOW)
-          {
-            voice_control();
-          }
-          dis=2;
-          break;
-        case 3:
-          oled.Clear_Screen();
-          while(digitalRead(button)!=LOW)
-          {
-            brainwave_control();
-          }
-          dis=2;
-          break;
       }
       break;
     }
@@ -189,8 +197,125 @@ void loop()
       Lock();
       break;
     }
+    case 4:
+    {
+      oled.Clear_Screen();
+      save_routes();
+      dis=0;
+      break;
+    }
   }
 }
+
+
+
+void show_menu(int idx)
+{
+  oled.Set_Color(BLUE);
+  oled.print_String(47, 5, (const uint8_t*)"MENU", FONT_8X16);
+  draw_line(0, 23, 1);
+  oled.Set_Color(WHITE);
+  if(idx == 0)
+  {
+    oled.Set_Color(RED);
+  }
+  oled.print_String(47, 38, (const uint8_t*)"Lock", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 1)
+    oled.Set_Color(RED);
+  oled.print_String(45, 53, (const uint8_t*)"Modes", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 2)
+    oled.Set_Color(RED);
+  oled.print_String(21, 68, (const uint8_t*)"Save Routes", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 3)
+    oled.Set_Color(RED);
+  oled.print_String(47, 83, (const uint8_t*)"Stats", FONT_8X16);
+  oled.Set_Color(WHITE);
+}
+
+
+
+void modes(int idx)
+{
+  oled.Set_Color(BLUE);
+  oled.print_String(47, 5, (const uint8_t*)"MODES", FONT_8X16);
+  draw_line(0, 23, 1);
+  if(manual==1)
+  {
+    oled.Set_Color(GREEN);
+  }
+  else
+  {
+    oled.Set_Color(RED);
+  }
+  if(idx == 0)
+  {
+    oled.Set_Color(WHITE);
+  }
+  oled.print_String(44, 38, (const uint8_t*)"Manual", FONT_8X16);
+  if(voice==1)
+  {
+    oled.Set_Color(GREEN);
+  }
+  else
+  {
+    oled.Set_Color(RED);
+  }
+  if(idx == 1)
+    oled.Set_Color(WHITE);
+  oled.print_String(47, 53, (const uint8_t*)"Voice", FONT_8X16);
+  if(brain==1)
+  {
+    oled.Set_Color(GREEN);
+  }
+  else
+  {
+    oled.Set_Color(RED);
+  }
+  if(idx == 2)
+    oled.Set_Color(WHITE);
+  oled.print_String(35, 68, (const uint8_t*)"Brainwave", FONT_8X16);
+  oled.Set_Color(RED);
+  if(idx == 3)
+    oled.Set_Color(WHITE);
+  oled.print_String(50, 83, (const uint8_t*)"BACK", FONT_8X16);  
+  oled.Set_Color(WHITE);
+}
+
+
+
+void Lock()
+{
+  oled.Set_Color(WHITE);
+  oled.print_String(32, 30, (const uint8_t*)"Enter the", FONT_8X16);
+  oled.print_String(35, 45, (const uint8_t*)"joystick", FONT_8X16);
+  oled.print_String(26, 60, (const uint8_t*)"combination:", FONT_8X16);
+  while(true)
+  {
+    if((int)analogRead(A2) > 1000)
+    {
+      Serial.println((int)analogRead(A2));
+      delay(600);
+      if((int)analogRead(A1) < 50)
+      {
+        Serial.println((int)analogRead(A1));
+        dis=0;
+        break;
+      }
+    }
+  }
+}
+
+
+
+void save_routes()
+{
+  return;
+}
+
+
 
 void show_stats()
 {
@@ -223,135 +348,4 @@ void show_stats()
       delay(100);
     }
   }
-}
-
-
-void Lock()
-{
-  oled.Set_Color(WHITE);
-  oled.print_String(32, 30, (const uint8_t*)"Enter the", FONT_8X16);
-  oled.print_String(35, 45, (const uint8_t*)"joystick", FONT_8X16);
-  oled.print_String(26, 60, (const uint8_t*)"combination:", FONT_8X16);
-  while(true)
-  {
-    if((int)analogRead(A2) == 1023)
-    {
-      delay(500);
-      if((int)analogRead(A2) == 0)
-      {
-        delay(500);
-        if(digitalRead(button) == LOW)
-        {
-          dis=0;
-          break;
-        }
-      }
-    }
-  }
-}
-
-
-void show_menu(int idx)
-{
-  oled.Set_Color(BLUE);
-  oled.print_String(47, 5, (const uint8_t*)"MENU", FONT_8X16);
-  draw_line(0, 23, 1);
-  oled.Set_Color(WHITE);
-  if(idx == 0)
-  {
-    oled.Set_Color(RED);
-  }
-  oled.print_String(47, 38, (const uint8_t*)"Lock", FONT_8X16);
-  oled.Set_Color(WHITE);
-  if(idx == 1)
-    oled.Set_Color(RED);
-  oled.print_String(45, 53, (const uint8_t*)"Modes", FONT_8X16);
-  oled.Set_Color(WHITE);
-  if(idx == 2)
-    oled.Set_Color(RED);
-  oled.print_String(27, 68, (const uint8_t*)"Management", FONT_8X16);
-  oled.Set_Color(WHITE);
-  if(idx == 3)
-    oled.Set_Color(RED);
-  oled.print_String(47, 83, (const uint8_t*)"Stats", FONT_8X16);
-  oled.Set_Color(WHITE);
-  /*if(idx == 4)
-  {
-    oled.Set_Color(RED);
-  }
-  oled.print_String(47, 98, (const uint8_t*)"BACK", FONT_8X16);  
-  oled.Set_Color(WHITE);*/
-}
-
-
-void modes(int idx)
-{
-  oled.Set_Color(BLUE);
-  oled.print_String(47, 5, (const uint8_t*)"MODES", FONT_8X16);
-  draw_line(0, 23, 1);
-  oled.Set_Color(WHITE);
-  if(idx == 0)
-  {
-    oled.Set_Color(RED);
-  }
-  oled.print_String(44, 38, (const uint8_t*)"Manual", FONT_8X16);
-  oled.Set_Color(WHITE);
-  if(idx == 1)
-    oled.Set_Color(RED);
-  oled.print_String(47, 53, (const uint8_t*)"Voice", FONT_8X16);
-  oled.Set_Color(WHITE);
-  if(idx == 2)
-    oled.Set_Color(RED);
-  oled.print_String(35, 68, (const uint8_t*)"Brainwave", FONT_8X16);
-  oled.Set_Color(WHITE);
-  if(idx == 3)
-    oled.Set_Color(RED);
-  oled.print_String(50, 83, (const uint8_t*)"BACK", FONT_8X16);  
-  oled.Set_Color(WHITE);
-}
-
-
-void manual_control()
-{
-  oled.Set_Color(BLUE);
-  oled.print_String(8, 5, (const uint8_t*)"MANUAL_CONTROL", FONT_8X16);
-  draw_line(0, 23, 1);
-  oled.Set_Color(WHITE);
-  oled.print_String(33, 38, (const uint8_t*)"Press the", FONT_8X16);
-  oled.Set_Color(WHITE);
-  oled.print_String(36, 53, (const uint8_t*)"joystick", FONT_8X16);
-  oled.Set_Color(WHITE);
-  oled.print_String(33, 68, (const uint8_t*)"for exit!", FONT_8X16);
-  oled.Set_Color(WHITE);
-  
-}
-
-
-void voice_control()
-{
-  oled.Set_Color(BLUE);
-  oled.print_String(11, 5, (const uint8_t*)"VOICE_CONTROL", FONT_8X16);
-  draw_line(0, 23, 1);
-  oled.Set_Color(WHITE);
-  oled.print_String(33, 38, (const uint8_t*)"Press the", FONT_8X16);
-  oled.Set_Color(WHITE);
-  oled.print_String(36, 53, (const uint8_t*)"joystick", FONT_8X16);
-  oled.Set_Color(WHITE);
-  oled.print_String(33, 68, (const uint8_t*)"for exit!", FONT_8X16);
-  oled.Set_Color(WHITE);
-}
-
-
-void brainwave_control()
-{
-  oled.Set_Color(BLUE);
-  oled.print_String(11, 5, (const uint8_t*)"BRAIN_CONTROL", FONT_8X16);
-  draw_line(0, 23, 1);
-  oled.Set_Color(WHITE);
-  oled.print_String(33, 38, (const uint8_t*)"Press the", FONT_8X16);
-  oled.Set_Color(WHITE);
-  oled.print_String(36, 53, (const uint8_t*)"joystick", FONT_8X16);
-  oled.Set_Color(WHITE);
-  oled.print_String(33, 68, (const uint8_t*)"for exit!", FONT_8X16);
-  oled.Set_Color(WHITE);
 }
