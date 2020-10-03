@@ -4,25 +4,38 @@
 #include <SPI.h>
 //#include <Wire.h>
 
+//#define SLAVE_ADDR 0x15
+//#define JOYSTICK_READY 5
+//#define SLAVE_READY 6
+
 #define button 3
 OLED_GFX oled = OLED_GFX();
+
+//#define RECORDED 128
+
+enum cmds{_STOP, _FORWARD, _BACKWARD, _LEFT, _RIGHT};
+enum modules{VOICE_RECOGNITION_MODULE = 1, BRAINWAVE_MODULE};
+
+enum output_data_t_vars{is_recording, module_enable, rec_number};
+enum input_data_t_vars{voice_command, brainwave_command};
+
+char input_data_t[2] = {0, 0};
+char output_data_t[3] = {0, 0, 0};
 
 enum addrs{MANUAL_ADDR = 100, VOICE_ADDR, BRAIN_ADDR};
 
 uint8_t* sp_1;
 uint8_t* sp_2;
 
-
+int count=0;
+int i=0;
+int oled_count=0;
 int dis = 0;
 int manual=0;
 int voice=0;
 int brain=0;
-int save_voice;
 int light=0;
 
-
-void _receive(int);
-void _transmit();
 void show_menu(int, int);
 void modes(int);
 void Lock();
@@ -30,6 +43,7 @@ void save_routes();
 void managment(int);
 void save_voice_commands(int);
 void show_stats();
+//void _transcieve(uint8_t*, uint8_t*);
 
 void draw_line(int start_x, int start_y, int dir)
 {
@@ -46,6 +60,8 @@ void draw_line(int start_x, int start_y, int dir)
   }  
 }
 
+int flag=0;
+
 void setup() {
   //Wire.begin();
   pinMode(oled_cs, OUTPUT);
@@ -58,7 +74,11 @@ void setup() {
   SPI.setBitOrder(MSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV2);
   SPI.begin();
-  Serial.begin(9600);
+  Serial.begin(57600);
+  //pinMode(JOYSTICK_READY, OUTPUT);
+  //pinMode(SLAVE_READY, INPUT);
+  //digitalWrite(JOYSTICK_READY, LOW);
+  
   manual = EEPROM.read(MANUAL_ADDR);
   voice = EEPROM.read(VOICE_ADDR);
   brain = EEPROM.read(BRAIN_ADDR);
@@ -75,7 +95,6 @@ void setup() {
 
 void loop() 
 {
-  int i=0;
   switch(dis)
   {
     case 0:
@@ -85,246 +104,307 @@ void loop()
     }
     case 1:
     {
-      oled.Clear_Screen();
-      i=0;
-      while(i<5)
+      if(oled_count==0)
       {
-        show_menu(i);
-        if(i<5)
-        {
-          if((int)analogRead(A2) == 0)
-          {
-            i++;
-            delay(100);
-          }
-          if(i>0)
-          {
-            if((int)analogRead(A2) == 1023)
-            {
-              i--;
-              delay(100);
-            }
-          }
-        }
-        if(i==1 && digitalRead(button)==LOW)
-        {
-          dis=2;
-          break;
-        }
-        else if(i==4 && digitalRead(button)==LOW)
-        {
-          dis=0;
-          break;
-        }
-        else if(i==0 && digitalRead(button)==LOW)
-        {
-          dis = 3;
-          break;
-        }
-        else if(i==3 && digitalRead(button)==LOW)
-        {
-          dis = 4;
-          break;
-        }
-        else if(i==2 && digitalRead(button)==LOW)
-        {
-          dis=5;
-          break;
-        }
+        oled.Clear_Screen();
+        oled_count=1;
+        i=0;
       }
+
+      if(((int)analogRead(A1) > 256) && ((int)analogRead(A1) < 768) && (flag!=0))
+        {
+          flag=0;
+        }
+        
+      if((int)analogRead(A1) < 256 && (flag!=-1))
+        {
+          i++;
+          //delay(100);
+          flag=-1;
+        }
+      if((int)analogRead(A1) > 768 && (flag!=1))
+          {
+            i--;
+            //delay(100);
+            flag=1;
+          }
+          
+      if(i>4)i=0;
+      if(i<0)i=4;
+      
+      show_menu(i);
+      
+      if(i==1 && digitalRead(button)==LOW)
+      {
+        oled_count=0;
+        dis=2;
+        break;
+      }
+      else if(i==4 && digitalRead(button)==LOW)
+      {
+        oled_count=0;
+        dis=0;
+        break;
+      }
+      else if(i==0 && digitalRead(button)==LOW)
+      {
+        oled_count=0;
+        dis = 3;
+        break;
+      }
+      else if(i==3 && digitalRead(button)==LOW)
+      {
+        oled_count=0;
+        dis = 4;
+        break;
+      }
+      else if(i==2 && digitalRead(button)==LOW)
+      {
+        oled_count=0;
+        dis=5;
+        break;
+      }
+      
       break;
     }
     case 2:
     {
-      i=0;
-      oled.Clear_Screen();
-      while(i<4)
+      if(oled_count==0)
       {
-        modes(i);
-        if(i<4)
+        oled.Clear_Screen();
+        i=0;
+      }
+      modes(i);
+     
+      if(((int)analogRead(A1) > 256) && ((int)analogRead(A1) < 768) && (flag!=0))
+      {
+        flag=0;
+      }
+      if((int)analogRead(A1) < 256 && (flag!=-1))
+      {
+        i++;
+        //delay(100);
+        flag=-1;
+      }
+      if((int)analogRead(A1) > 768 && (flag!=1))
+      {
+        i--;
+        //delay(100);
+        flag=1;
+      }
+
+      if(i>4)i=0;
+      if(i<0)i=4;
+      
+      if(i==0 &&digitalRead(button)==LOW)
+      {
+        if(manual==1)
         {
-          if((int)analogRead(A2) == 0)
-          {
-            i++;
-            delay(100);
-          }
-          if(i>0)
-          {
-            if((int)analogRead(A2) == 1023)
-            {
-              i--;
-              delay(100);
-            }
-          }
+          manual=0;
+          EEPROM.write(MANUAL_ADDR, manual);
         }
-        if(i==0 &&digitalRead(button)==LOW)
+        else
         {
-          if(manual==1)
-          {
-            manual=0;
-            EEPROM.write(MANUAL_ADDR, manual);
-          }
-          else
-          {
-            manual=1;
-            EEPROM.write(MANUAL_ADDR, manual);
-          }
+          manual=1;
+          EEPROM.write(MANUAL_ADDR, manual);
         }
-        if(i==1 && digitalRead(button)==LOW)
+      }
+      if(i==1 && digitalRead(button)==LOW)
+      {
+        if(voice==1)
         {
-          if(voice==1)
-          {
-            voice=0;
-            EEPROM.write(VOICE_ADDR, voice);
-          }
-          else
-          {
-            voice=1;
-            EEPROM.write(VOICE_ADDR, voice);
-          }
+          voice=0;
+          EEPROM.write(VOICE_ADDR, voice);
         }
-        if(i==2 && digitalRead(button)==LOW)
+        else
         {
-          if(brain==1)
-          {
-            brain=0;
-            EEPROM.write(BRAIN_ADDR, brain);
-          }
-          else
-          {
-            brain=1;
-            EEPROM.write(BRAIN_ADDR, brain);
-          }
+          voice=1;
+          EEPROM.write(VOICE_ADDR, voice);
         }
-        if(i==3 && digitalRead(button)==LOW)
+      }
+      if(i==2 && digitalRead(button)==LOW)
+      {
+        if(brain==1)
         {
-          dis=1;
-          break;
+          brain=0;
+          EEPROM.write(BRAIN_ADDR, brain);
         }
+        else
+        {
+          brain=1;
+          EEPROM.write(BRAIN_ADDR, brain);
+        }
+      }
+      if(i==3 && digitalRead(button)==LOW)
+      {
+        oled_count=0;
+        dis=1;
+        break;
+      }
+      if(dis==2)
+      {
+        oled_count=1;
       }
       break;
     }
     case 3:
     {
-      oled.Clear_Screen();
+      if(oled_count==0)
+      {
+        oled.Clear_Screen();
+      }
       Lock();
+      if(dis==3)
+      {
+        oled_count=1;
+      }
       break;
     }
     case 4:
     {
-      oled.Clear_Screen();
+      if(oled_count==0)
+      {
+        oled.Clear_Screen();
+      }
       save_routes();
+      oled_count=0;
       dis=1;
+      if(dis==4)
+      {
+        oled_count=1;
+      }
       break;
     }
     case 5:
     {
-      int count=0;
-      oled.Clear_Screen();
-      while(count<3)
+      if(oled_count==0)
       {
-        managment(count);
-        if(count<3)
+        oled.Clear_Screen();
+        count=0;
+      }
+      managment(count);
+      if(((int)analogRead(A1) > 256) && ((int)analogRead(A1) < 768) && (flag!=0))
+      {
+        flag=0;
+      }
+      if((int)analogRead(A1) < 256 && (flag!=-1))
+      {
+        count++;
+        //delay(100);
+        flag=-1;
+      }
+      if((int)analogRead(A1) > 768 && (flag!=1))
+      {
+        count--;
+        //delay(100);
+        flag=1;
+      }
+      if(count>3)count=0;
+      if(count<0)count=3;
+      if(count==0 && digitalRead(button)==LOW)
+      {
+        dis=6;
+        break;
+      }
+      if(count==1 && digitalRead(button)==LOW)
+      {
+        if(light == 0)
         {
-          if((int)analogRead(A2) == 0)
-          {
-            count++;
-            delay(100);
-          }
-          if(count>0)
-          {
-            if((int)analogRead(A2) == 1023)
-            {
-              count--;
-              delay(100);
-            }
-          }
+          light=1;  
         }
-        if(count==0 && digitalRead(button)==LOW)
+        else if(light == 1)
         {
-          dis=6;
-          break;
+          light=0;
         }
-        if(count==1 && digitalRead(button)==LOW)
-        {
-          if(light == 0)
-          {
-            light=1;
-            
-          }
-          else if(light == 1)
-          {
-            light=0;
-          }
-        }
-        if(count==2 && digitalRead(button)==LOW)
-        {
-          dis=1;
-          break;
-        }
+      }
+      if(count==2 && digitalRead(button)==LOW)
+      {
+        oled_count=0;
+        dis=1;
+        break;
+      }
+      if(dis==5)
+      {
+        oled_count=1;
       }
       break;
     }
     case 6:
     {
-      int count=0;
-      oled.Clear_Screen();
-      while(count<6)
+      if(oled_count==0)
       {
-        save_voice_commands(count);
-        if(count<6)
-        {
-          if((int)analogRead(A2) == 0)
-          {
-            count++;
-            delay(100);
-          }
-          if(count>0)
-          {
-            if((int)analogRead(A2) == 1023)
-            {
-              count--;
-              delay(100);
-            }
-          }
-        }
-        if(count==0 && digitalRead(button)==LOW)
-        {
-          save_voice=4;
-          Serial.print(save_voice);
-        }
-        if(count==1 && digitalRead(button)==LOW)
-        {
-          save_voice=3;
-          Serial.print(save_voice);
-        }
-        if(count==2 && digitalRead(button)==LOW)
-        {
-          save_voice=2;
-          Serial.print(save_voice);
-        }
-        if(count==3 && digitalRead(button)==LOW)
-        {
-          save_voice=1;
-          Serial.print(save_voice);
-        }
-        if(count==4 && digitalRead(button)==LOW)
-        {
-          save_voice=0;
-          Serial.print(save_voice);
-        }
-        if(count==5 && digitalRead(button)==LOW)
-        {
-          dis=5;
-          break;
-        }
+        oled.Clear_Screen();
+        count=0;
+      }
+      save_voice_commands(count);
+      if(((int)analogRead(A1) > 256) && ((int)analogRead(A1) < 768) && (flag!=0))
+      {
+        flag=0;
+      }
+      if((int)analogRead(A1) < 256 && (flag!=-1))
+      {
+        count++;
+        //delay(100);
+        flag=-1;
+      }
+      if((int)analogRead(A1) > 768 && (flag!=1))
+      {
+        count--;
+        //delay(100);
+        flag=1;
+      }
+      if(count>6)count=0;
+      if(count<0)count=6;
+      if(count==0 && digitalRead(button)==LOW)
+      {
+        output_data_t[rec_number]=4;
+      }
+      if(count==1 && digitalRead(button)==LOW)
+      {
+        output_data_t[rec_number]=3;
+      }
+      if(count==2 && digitalRead(button)==LOW)
+      {
+        output_data_t[rec_number]=2;
+      }
+      if(count==3 && digitalRead(button)==LOW)
+      {
+        output_data_t[rec_number]=1;
+      }
+      if(count==4 && digitalRead(button)==LOW)
+      {
+        output_data_t[rec_number]=0;
+      }
+      if(count==5 && digitalRead(button)==LOW)
+      {
+        oled_count=0;
+        dis=5;
+        break;
+      }
+      if(dis==6)
+      {
+        oled_count=1;
       }
       break;
     }
   }
+  /*int counter=0;
+  while(counter<3)
+  {
+    Serial.print((int)output_data_t[counter]);
+    counter++;
+  }
+  Serial.println();
+   
+  counter=0;
+  while(counter<2)
+  {
+    Serial.print((int)input_data_t[counter]);
+    counter++;
+  }
+  Serial.println();
+  _transcieve(input_data_t, output_data_t);*/
 }
-
-
 
 void show_menu(int idx)
 {
@@ -415,13 +495,14 @@ void Lock()
   oled.print_String(26, 60, (const uint8_t*)"combination:", FONT_8X16);
   while(true)
   {
-    if((int)analogRead(A2) > 1000)
+    if((int)analogRead(A2) > 768)
     {
-      Serial.println((int)analogRead(A2));
+      Serial.println((int)analogRead(A1));
       delay(600);
-      if((int)analogRead(A1) < 50)
+      if((int)analogRead(A1) < 256)
       {
-        Serial.println((int)analogRead(A1));
+        Serial.println((int)analogRead(A2));
+        oled_count=0;
         dis=1;
         break;
       }
@@ -531,15 +612,19 @@ void show_stats()
   }
 }
 
-/*void _receive(int)
+/*void _transcieve(uint8_t* input, uint8_t* output)
 {
+  digitalWrite(JOYSTICK_READY, HIGH);
+  while(digitalRead(SLAVE_READY)!=HIGH);
+  Wire.beginTransmission(SLAVE_ADDR);
+  Wire.write(output, 3);
+  Wire.endTransmission(1);
+  Wire.requestFrom(SLAVE_ADDR, 2);
+  int idx = 0;
   while(Wire.available())
   {
-    Wire.read();
+    input[idx] = Wire.read();
+    idx++; 
   }
-}
-
-void _transmit()
-{
-  
+  digitalWrite(JOYSTICK_READY, LOW);
 }*/
