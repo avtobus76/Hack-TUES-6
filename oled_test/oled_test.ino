@@ -2,6 +2,7 @@
 #include "OLED_Driver.h"
 #include "OLED_GFX.h"
 #include <SPI.h>
+//#include <Wire.h>
 
 #define button 3
 OLED_GFX oled = OLED_GFX();
@@ -11,17 +12,24 @@ enum addrs{MANUAL_ADDR = 100, VOICE_ADDR, BRAIN_ADDR};
 uint8_t* sp_1;
 uint8_t* sp_2;
 
+
 int dis = 0;
 int manual=0;
 int voice=0;
 int brain=0;
-int i=0;
+int save_voice;
+int light=0;
 
-void show_stats();
-void Lock();
+
+void _receive(int);
+void _transmit();
 void show_menu(int, int);
 void modes(int);
+void Lock();
 void save_routes();
+void managment(int);
+void save_voice_commands(int);
+void show_stats();
 
 void draw_line(int start_x, int start_y, int dir)
 {
@@ -39,6 +47,7 @@ void draw_line(int start_x, int start_y, int dir)
 }
 
 void setup() {
+  //Wire.begin();
   pinMode(oled_cs, OUTPUT);
   pinMode(oled_rst, OUTPUT);
   pinMode(oled_dc, OUTPUT);
@@ -66,17 +75,22 @@ void setup() {
 
 void loop() 
 {
-  
+  int i=0;
   switch(dis)
   {
     case 0:
     {
+      show_stats();
+      break;
+    }
+    case 1:
+    {
       oled.Clear_Screen();
       i=0;
-      while(i<4)
+      while(i<5)
       {
         show_menu(i);
-        if(i<4)
+        if(i<5)
         {
           if((int)analogRead(A2) == 0)
           {
@@ -97,9 +111,9 @@ void loop()
           dis=2;
           break;
         }
-        else if(i==3 && digitalRead(button)==LOW)
+        else if(i==4 && digitalRead(button)==LOW)
         {
-          dis=1;
+          dis=0;
           break;
         }
         else if(i==0 && digitalRead(button)==LOW)
@@ -107,18 +121,17 @@ void loop()
           dis = 3;
           break;
         }
-        else if(i==2 && digitalRead(button)==LOW)
+        else if(i==3 && digitalRead(button)==LOW)
         {
           dis = 4;
           break;
         }
+        else if(i==2 && digitalRead(button)==LOW)
+        {
+          dis=5;
+          break;
+        }
       }
-      break;
-    }
-    case 1:
-    {
-      oled.Clear_Screen();
-      show_stats();
       break;
     }
     case 2:
@@ -185,7 +198,7 @@ void loop()
         }
         if(i==3 && digitalRead(button)==LOW)
         {
-          dis=0;
+          dis=1;
           break;
         }
       }
@@ -201,7 +214,111 @@ void loop()
     {
       oled.Clear_Screen();
       save_routes();
-      dis=0;
+      dis=1;
+      break;
+    }
+    case 5:
+    {
+      int count=0;
+      oled.Clear_Screen();
+      while(count<3)
+      {
+        managment(count);
+        if(count<3)
+        {
+          if((int)analogRead(A2) == 0)
+          {
+            count++;
+            delay(100);
+          }
+          if(count>0)
+          {
+            if((int)analogRead(A2) == 1023)
+            {
+              count--;
+              delay(100);
+            }
+          }
+        }
+        if(count==0 && digitalRead(button)==LOW)
+        {
+          dis=6;
+          break;
+        }
+        if(count==1 && digitalRead(button)==LOW)
+        {
+          if(light == 0)
+          {
+            light=1;
+            
+          }
+          else if(light == 1)
+          {
+            light=0;
+          }
+        }
+        if(count==2 && digitalRead(button)==LOW)
+        {
+          dis=1;
+          break;
+        }
+      }
+      break;
+    }
+    case 6:
+    {
+      int count=0;
+      oled.Clear_Screen();
+      while(count<6)
+      {
+        save_voice_commands(count);
+        if(count<6)
+        {
+          if((int)analogRead(A2) == 0)
+          {
+            count++;
+            delay(100);
+          }
+          if(count>0)
+          {
+            if((int)analogRead(A2) == 1023)
+            {
+              count--;
+              delay(100);
+            }
+          }
+        }
+        if(count==0 && digitalRead(button)==LOW)
+        {
+          save_voice=4;
+          Serial.print(save_voice);
+        }
+        if(count==1 && digitalRead(button)==LOW)
+        {
+          save_voice=3;
+          Serial.print(save_voice);
+        }
+        if(count==2 && digitalRead(button)==LOW)
+        {
+          save_voice=2;
+          Serial.print(save_voice);
+        }
+        if(count==3 && digitalRead(button)==LOW)
+        {
+          save_voice=1;
+          Serial.print(save_voice);
+        }
+        if(count==4 && digitalRead(button)==LOW)
+        {
+          save_voice=0;
+          Serial.print(save_voice);
+        }
+        if(count==5 && digitalRead(button)==LOW)
+        {
+          dis=5;
+          break;
+        }
+      }
       break;
     }
   }
@@ -217,21 +334,25 @@ void show_menu(int idx)
   oled.Set_Color(WHITE);
   if(idx == 0)
   {
-    oled.Set_Color(RED);
+    oled.Set_Color(GREEN);
   }
   oled.print_String(47, 38, (const uint8_t*)"Lock", FONT_8X16);
   oled.Set_Color(WHITE);
   if(idx == 1)
-    oled.Set_Color(RED);
+    oled.Set_Color(GREEN);
   oled.print_String(45, 53, (const uint8_t*)"Modes", FONT_8X16);
   oled.Set_Color(WHITE);
   if(idx == 2)
-    oled.Set_Color(RED);
-  oled.print_String(21, 68, (const uint8_t*)"Save Routes", FONT_8X16);
+    oled.Set_Color(GREEN);
+  oled.print_String(27, 68, (const uint8_t*)"Managment", FONT_8X16);
   oled.Set_Color(WHITE);
   if(idx == 3)
-    oled.Set_Color(RED);
-  oled.print_String(47, 83, (const uint8_t*)"Stats", FONT_8X16);
+    oled.Set_Color(GREEN);
+  oled.print_String(21, 83, (const uint8_t*)"Save Routes", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 4)
+    oled.Set_Color(GREEN);
+  oled.print_String(47, 98, (const uint8_t*)"Stats", FONT_8X16);
   oled.Set_Color(WHITE);
 }
 
@@ -277,7 +398,7 @@ void modes(int idx)
   if(idx == 2)
     oled.Set_Color(WHITE);
   oled.print_String(35, 68, (const uint8_t*)"Brainwave", FONT_8X16);
-  oled.Set_Color(RED);
+  oled.Set_Color(BLUE);
   if(idx == 3)
     oled.Set_Color(WHITE);
   oled.print_String(50, 83, (const uint8_t*)"BACK", FONT_8X16);  
@@ -301,7 +422,7 @@ void Lock()
       if((int)analogRead(A1) < 50)
       {
         Serial.println((int)analogRead(A1));
-        dis=0;
+        dis=1;
         break;
       }
     }
@@ -313,6 +434,66 @@ void Lock()
 void save_routes()
 {
   return;
+}
+
+
+
+void managment(int idx)
+{
+  oled.Set_Color(BLUE);
+  oled.print_String(32, 5, (const uint8_t*)"Managment", FONT_8X16);
+  draw_line(0, 23, 1);
+  oled.Set_Color(WHITE);
+  if(idx == 0)
+  {
+    oled.Set_Color(GREEN);
+  }
+  oled.print_String(14, 25, (const uint8_t*)"Voice_commands", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 1)
+    oled.Set_Color(GREEN);
+  oled.print_String(29, 40, (const uint8_t*)"Flashlight", FONT_8X16);
+  oled.Set_Color(BLUE);
+  if(idx==2)
+    oled.Set_Color(GREEN);
+  oled.print_String(47, 55, (const uint8_t*)"Back", FONT_8X16);
+  oled.Set_Color(WHITE);
+}
+
+
+
+void save_voice_commands(int idx)
+{
+  oled.Set_Color(BLUE);
+  oled.print_String(44, 5, (const uint8_t*)"Voice", FONT_8X16);
+  draw_line(0, 23, 1);
+  oled.Set_Color(WHITE);
+  if(idx == 0)
+  {
+    oled.Set_Color(GREEN);
+  }
+  oled.print_String(47, 25, (const uint8_t*)"Stop", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 1)
+    oled.Set_Color(GREEN);
+  oled.print_String(44, 40, (const uint8_t*)"Right", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 2)
+    oled.Set_Color(GREEN);
+  oled.print_String(47, 55, (const uint8_t*)"Left", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 3)
+    oled.Set_Color(GREEN);
+  oled.print_String(32, 70, (const uint8_t*)"Backward", FONT_8X16);
+  oled.Set_Color(WHITE);
+  if(idx == 4)
+    oled.Set_Color(GREEN);
+  oled.print_String(35, 85, (const uint8_t*)"Forward", FONT_8X16);
+  oled.Set_Color(BLUE);
+  if(idx == 5)
+    oled.Set_Color(GREEN);
+  oled.print_String(47, 100, (const uint8_t*)"Back", FONT_8X16);
+  oled.Set_Color(WHITE);
 }
 
 
@@ -336,7 +517,7 @@ void show_stats()
     {
       if(digitalRead(button) == LOW)
       {
-        dis=0;
+        dis=1;
         break;
       }
       *sp_1 = (i+'0');
@@ -349,3 +530,16 @@ void show_stats()
     }
   }
 }
+
+/*void _receive(int)
+{
+  while(Wire.available())
+  {
+    Wire.read();
+  }
+}
+
+void _transmit()
+{
+  
+}*/
