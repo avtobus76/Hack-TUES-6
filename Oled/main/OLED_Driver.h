@@ -50,8 +50,8 @@ extern uint8_t color_byte[2],color_fill_byte[2];
 #define swap(a, b) { uint8_t t = a; a = b; b = t; }
 
 #define oled_cs   53
-#define oled_rst  7
-#define oled_dc   8
+#define oled_rst  48
+#define oled_dc   49
 #define oled_sck  52
 #define oled_din  51
 

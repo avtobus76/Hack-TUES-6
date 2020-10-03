@@ -297,5 +297,3 @@ void OLED_GFX::Draw_Triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int
   Draw_Line(x1, y1, x2, y2);
   Draw_Line(x2, y2, x0, y0);
 }
-
-
