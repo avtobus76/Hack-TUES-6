@@ -37,7 +37,6 @@ void oled_setup()
   SPI.setBitOrder(MSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV2);
   SPI.begin();
-  Serial.begin(9600);
 
   manual = EEPROM.read(MANUAL_ADDR);
   voice = EEPROM.read(VOICE_ADDR);
@@ -124,7 +123,6 @@ void update_oled()
       else if(i==2 && digitalRead(button)==LOW)
       {
         vr3_data_in[IS_RECORDING]=1;
-        Serial.println(vr3_data_in[IS_RECORDING]);
       }
       break;
     }

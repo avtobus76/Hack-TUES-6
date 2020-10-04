@@ -7,7 +7,6 @@ void setup() {
   _initButtons();
   init_motors_temp();
   init_communication();
-  Serial.begin(9600);
 }
 
 void loop() {
@@ -54,17 +53,7 @@ void loop() {
     _ShowGear(gear + _PARK);
     mc_data_in[BRAKES] = 1;
   }
-  Serial.print(vr3_data_in[IS_RECORDING]);
-  Serial.print(vr3_data_in[MODULE_ENABLE]);
-  Serial.println(voice_commands);
-  /*Serial.print(mc_data_in[0]);
-  Serial.print(mc_data_in[1]);
-  Serial.print(mc_data_in[2]);
-  Serial.print(mc_data_in[3]);
-  Serial.print(mc_data_in[4]);
-  Serial.println(mc_data_in[5]);
-  Serial.print(mc_data_out[0]);
-  Serial.println(mc_data_out[1]);*/
+  
   transcieve();
   vr3_data_in[IS_RECORDING] = 0;
 }
