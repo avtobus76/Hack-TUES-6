@@ -59,7 +59,7 @@ void update_oled()
 {
   switch(cases)
   {
-    case 0://cases==0 funkciq "show_stats()" - upravlenie na kolichkata
+    case 0:
     {
       if(oled_count==0)
       {
@@ -73,7 +73,7 @@ void update_oled()
       break;
     }
 
-    case 1://cases==1 funkciq "show_menu()" - pokazva menu-to
+    case 1:
     {
       if(oled_count==0)
       {
@@ -86,7 +86,7 @@ void update_oled()
       
       if(((int)analogRead(A1) > 256) && ((int)analogRead(A1) < 768) && (flag!=0))
       {
-        flag=0; //tozi "flag" pravi taka che da moje da se mesti samo vednuj nagore i nadolu, a ne pri zadurjane da se mesti nqkolko puti
+        flag=0; 
       }
         
       if((int)analogRead(A1) < 256 && (flag!=-1))
@@ -129,7 +129,7 @@ void update_oled()
       break;
     }
 
-    case 2://cases==2 funkciq "modes()" - izbirane na nachin za karane
+    case 2:
     {
       if(oled_count==0)
       {
@@ -146,13 +146,13 @@ void update_oled()
       if((int)analogRead(A1) < 256 && (flag!=-1))
       {
         i++;
-        //delay(100);
+        
         flag=-1;
       }
       if((int)analogRead(A1) > 768 && (flag!=1))
       {
         i--;
-        //delay(100);
+        
         flag=1;
       }
 
@@ -201,7 +201,7 @@ void update_oled()
       break;
     }
 
-    case 3://cases==3 funkciq "Lock()" - zakluchva kolichkata
+    case 3:
     {
       if(oled_count==0)
       {

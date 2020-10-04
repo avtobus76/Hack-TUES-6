@@ -45,13 +45,13 @@ int gear_down_button_state = 0;
 int go_one=0;
 int once_clear_oled = 0;
 int prev_bat_lvl = 0;
-int flag = 0;//tozi "flag" pravi taka che da moje da se mesti samo vednuj nagore i nadolu, a ne pri zadurjane da se mesti nqkolko puti
-int i = 0;//prosto broqch
-int oled_count = 0;//ot nego zavisi koga shte se clear-va ekrana
-int cases = 0;//broqch za minavane prez case-ovete za funkciite
-int manual = 0;//0 ili 1 v zavisimost ot tova dali e izbrano v oled-a (no ne q prashtam)
-int voice = 0;//0 ili 1 v zavisimost ot tova dali e izbrano v oled-a (no ne q prashtam)
-int brain = 0;//0 ili 1 v zavisimost ot tova dali e izbrano v oled-a (no ne q prashtam)
+int flag = 0;
+int i = 0;
+int oled_count = 0;
+int cases = 0;
+int manual = 0;
+int voice = 0;
+int brain = 0;
 
 const int gearUp_button;
 const int gearDown_button;
