@@ -236,19 +236,19 @@ void show_stats()
     {
       itoa(bat_lvl, battery_level, 10);
       oled.print_String(73, 38, (const uint8_t*)battery_level, FONT_8X16);
-      oled.print_String(100, 38, "%", FONT_8X16);
+      oled.print_String(100, 38, (const uint8_t*)"%", FONT_8X16);
     }
     else if(numDigits(bat_lvl)==2)
     {
       itoa(bat_lvl, battery_level, 10);
       oled.print_String(73, 38, (const uint8_t*)battery_level, FONT_8X16);
-      oled.print_String(90, 38, "%", FONT_8X16);
+      oled.print_String(90, 38, (const uint8_t*)"%", FONT_8X16);
     }
     else
     {
       itoa(bat_lvl, battery_level, 10);
       oled.print_String(73, 38, (const uint8_t*)battery_level, FONT_8X16);
-      oled.print_String(83, 38, "%", FONT_8X16);
+      oled.print_String(83, 38, (const uint8_t*)"%", FONT_8X16);
     }
   }
   else
@@ -257,19 +257,19 @@ void show_stats()
     {
       itoa(bat_lvl, battery_level, 10);
       oled.print_String(73, 38, (const uint8_t*)battery_level, FONT_8X16);
-      oled.print_String(100, 38, "%", FONT_8X16);
+      oled.print_String(100, 38, (const uint8_t*)"%", FONT_8X16);
     }
     else if(numDigits(bat_lvl)==2)
     {
       itoa(bat_lvl, battery_level, 10);
       oled.print_String(73, 38, (const uint8_t*)battery_level, FONT_8X16);
-      oled.print_String(90, 38, "%", FONT_8X16);
+      oled.print_String(90, 38, (const uint8_t*)"%", FONT_8X16);
     }
     else
     {
       itoa(bat_lvl, battery_level, 10);
       oled.print_String(73, 38, (const uint8_t*)battery_level, FONT_8X16);
-      oled.print_String(83, 38, "%", FONT_8X16);
+      oled.print_String(83, 38, (const uint8_t*)"%", FONT_8X16);
     }
   }
   prev_bat_lvl = bat_lvl;
@@ -281,7 +281,7 @@ void show_stats()
   
   itoa(lmt, left_motor_temp, 10);
   oled.print_String(73, 53, (const uint8_t*)left_motor_temp, FONT_8X16);
-  oled.print_String(90, 53, "C", FONT_8X16);
+  oled.print_String(90, 53, (const uint8_t*)"C", FONT_8X16);
 
   
   char right_motor_temp[2];
@@ -289,7 +289,7 @@ void show_stats()
   
   itoa(rmt, right_motor_temp, 10);
   oled.print_String(73, 68, (const uint8_t*)right_motor_temp, FONT_8X16);
-  oled.print_String(90, 68, "C", FONT_8X16);
+  oled.print_String(90, 68, (const uint8_t*)"C", FONT_8X16);
 
   
 
@@ -301,9 +301,9 @@ void show_stats()
   itoa(hum, _hum, 10);
   itoa(temp, _temp, 10);
   oled.print_String(80, 83, (const uint8_t*)_hum, FONT_8X16);
-  oled.print_String(95, 83, "%", FONT_8X16);
+  oled.print_String(95, 83, (const uint8_t*)"%", FONT_8X16);
   oled.print_String(80, 98, (const uint8_t*)_temp, FONT_8X16);
-  oled.print_String(95, 98, "C", FONT_8X16);
+  oled.print_String(95, 98, (const uint8_t*)"C", FONT_8X16);
 
   
 

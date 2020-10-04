@@ -49,11 +49,11 @@ extern uint8_t color_byte[2],color_fill_byte[2];
 
 #define swap(a, b) { uint8_t t = a; a = b; b = t; }
 
-#define oled_cs   53
-#define oled_rst  48
-#define oled_dc   49
-#define oled_sck  52
-#define oled_din  51
+#define oled_cs   4
+#define oled_rst  2
+#define oled_dc   3
+#define oled_sck  7
+#define oled_din  5
 
 #define BLACK   0x0000
 #define BLUE    0x001F

@@ -11,7 +11,7 @@
 #include <SPI.h>
 #include <Wire.h>
 
-#define ONE_WIRE_BUS 2
+#define ONE_WIRE_BUS 12
 #define button 22
 #define VR3_ADDR 0x15
 #define MC_ADDR 0x10
@@ -53,21 +53,21 @@ int manual = 0;
 int voice = 0;
 int brain = 0;
 
-const int gearUp_button;
-const int gearDown_button;
+const int gearUp_button = 20;
+const int gearDown_button = 21;
 const int mc_register_data_pin = 8;
 const int mc_register_clk_pin = 10;
 const int mc_register_latch_pin = 9;
 const int air_sensor_pin = 5;
-const int horn_button;
-const int park_button;
+const int horn_button = 19;
+const int park_button = 18;
 const int battery_level_pin = A5;
 const int VR3_CS = 30;
 const int VR3_RESP = 31;
 const int MC_CS = 32;
 const int MC_RESP = 33;
-const int alarm_pin;
-const int record_led;
+const int alarm_pin = 23;
+const int record_led = 6;
 
 DHT dht(air_sensor_pin, DHT22);
 
