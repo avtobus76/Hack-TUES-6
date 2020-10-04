@@ -3,14 +3,13 @@
 void setup() {
   _initCommunication();
   _initVR3();
-  Serial.begin(9600);
 }
 
 void loop() {
   
   if(input_data_t[module_enable] == VOICE_RECOGNITION_MODULE)
   {
-    Serial.println("Vlezna");
+    
     if(input_data_t[is_recording])
       _record();
 
@@ -41,8 +40,6 @@ void loop() {
       }
     }
   }
-  Serial.println(output_data_t);
-  Serial.print(input_data_t[is_recording]);
-  Serial.println(input_data_t[module_enable]);
+  
   transcieve();
 }

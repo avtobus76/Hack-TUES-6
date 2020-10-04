@@ -13,8 +13,8 @@
 
 #define ONE_WIRE_BUS 2
 #define button 22
-#define VR3_ADDR 0x10
-#define MC_ADDR 0x15
+#define VR3_ADDR 0x15
+#define MC_ADDR 0x10
 
 OLED_GFX oled = OLED_GFX();
 

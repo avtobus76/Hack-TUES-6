@@ -7,12 +7,12 @@
 
 #define RECORDED 128
 #define CMD_NUM 5
-#define VR3_TGAM_ADDR 0x10
+#define VR3_TGAM_ADDR 0x15
 
 #define CS 6
 #define RESPONSE 7
 
-VR myVR(2,3);
+VR myVR(4,3);
 
 enum cmds{_STOP, _FORWARD, _BACKWARD, _LEFT, _RIGHT};
 enum modules{NO_MODULES=0, VOICE_RECOGNITION_MODULE=2};
